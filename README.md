@@ -1,96 +1,99 @@
 # GitHub Webhook Event Viewer
 
-This application listens for GitHub webhooks, stores the events in a MongoDB database, and displays them on a web interface.
+This project is a Flask-based web application that serves as a webhook receiver for GitHub events. It listens for `Push`, `Pull Request`, and `Merge` events from a specified GitHub repository, stores them in a MongoDB database, and displays them in real-time on a simple web interface.
 
-## Prerequisites
+---
 
-Before you begin, ensure you have the following installed:
+## Features
 
-- Python 3.x
-- pip (Python package installer)
-- MongoDB
+- **Real-time Event Display:** The user interface polls the server every 15 seconds to display the latest events.
+- **Handles Multiple Event Types:** Correctly parses and displays formatted messages for:
+  - `Push` events
+  - `Pull Request` (opened) events
+  - `Merge` events (when a pull request is merged)
+- **MongoDB Integration:** All incoming webhook events are stored in a MongoDB database.
+- **Clean & Minimalist UI:** A simple, clean interface to view the event stream.
+
+---
+
+## Project Structure
+
+This project requires two separate GitHub repositories to function as intended:
+
+1.  **`webhook-repo` (This Repository):** Contains the Flask application code that receives and processes the webhooks.
+2.  **`action-repo`:** A separate repository where you will perform `git` actions. The webhooks configured on this repository will point to the running `webhook-repo` application.
+
+---
 
 ## Setup and Installation
 
-1.  **Clone the repository:**
+To run this project locally, you will need Python, Pip, and MongoDB installed.
 
-    ```bash
-    git clone <repository-url>
-    cd <repository-directory>
-    ```
+**1. Clone the Repository:**
+```bash
+git clone https://github.com/patiltejas189/webhook-repo.git
+cd webhook-repo
+```
 
-2.  **Install the required Python packages:**
+**2. Install Dependencies:**
+Create a virtual environment (optional but recommended) and install the required Python packages.
+```bash
+pip install -r requirements.txt
+```
 
-    Open your terminal or command prompt and run the following command in the project directory:
+**3. Start the MongoDB Database:**
+Open a terminal and start the MongoDB daemon, pointing it to a local data directory.
+```bash
+# Make sure the 'Data/db' directory exists or choose another path
+mongod --dbpath ./Data/db
+```
+*Keep this terminal running.*
 
-    ```bash
-    pip install -r requirements.txt
-    ```
+**4. Start the Flask Application:**
+Open a second terminal and run the Flask application.
+```bash
+python app.py
+```
+The application will be running at `http://localhost:5000`. *Keep this terminal running.*
 
-## Running the Application
+---
 
-1.  **Start your MongoDB server.**
+## Demonstration Workflow
 
-    Make sure your MongoDB instance is running on `localhost:27017`.
+To see the application in action, you need to expose your local server to the internet and configure a webhook on your `action-repo`.
 
-2.  **Run the Flask application:**
+**1. Expose Your Local Server:**
+Use a tool like [ngrok](https://ngrok.com/download) to create a public URL for your local server. Open a third terminal and run:
+```bash
+ngrok http 5000
+```
+Copy the public "Forwarding" URL provided by ngrok (e.g., `https://random-string.ngrok-free.app`).
 
-    In your terminal or command prompt, run the following command:
+**2. Configure the GitHub Webhook:**
+- Navigate to your `action-repo` on GitHub.
+- Go to **Settings > Webhooks > Add webhook**.
+- **Payload URL:** Paste your ngrok URL and append `/webhook`.
+- **Content type:** Set to `application/json`.
+- **Events:** Select "Send me everything" or choose "Pushes" and "Pull requests".
+- Click **Add webhook**.
 
-    ```bash
-    python app.py
-    ```
+**3. Trigger Events:**
+Perform `git` actions in your local `action-repo` folder.
 
-3.  **View the application in your browser:**
+- **To Trigger a Push:**
+  ```bash
+  git add .
+  git commit -m "Test push"
+  git push
+  ```
 
-    Open your web browser and navigate to the following URL:
+- **To Trigger a Pull Request:**
+  1. Create and push a new branch (`git checkout -b my-feature && git push origin my-feature`).
+  2. Go to GitHub and open a new pull request.
 
-    [http://127.0.0.1:5000](http://127.0.0.1:5000)
+- **To Trigger a Merge:**
+  1. Go to the open pull request on GitHub.
+  2. Click "Merge pull request".
 
-## Webhook Configuration
-
-To receive events from a GitHub repository, you need to configure a webhook:
-
-1.  Go to your GitHub repository's **Settings** page.
-2.  Click on **Webhooks** in the left sidebar.
-3.  Click the **Add webhook** button.
-4.  In the **Payload URL** field, enter the URL of your running application's webhook endpoint (e.g., `http://<your-public-ip>:5000/webhook`).
-5.  For **Content type**, select `application/json`.
-6.  Under **Which events would you like to trigger this webhook?**, select **Send me everything** or choose individual events (`Pushes`, `Pull requests`).
-7.  Click **Add webhook**.
-
-<!-- Project Running process -->
-
-
-Step 1: Create a new branch and make a change.
-Run these commands in your terminal, inside your action-repo folder.
-
-# Command 1: Create a new branch called "feature-branch" and switch to it
-git checkout -b feature-branch
-
-# Command 2: Create a new file
-echo "This is a new feature for the pull request" > feature-file.txt
-
-# Command 3: Add and commit the new file
-git add .
-git commit -m "Adding a new feature"
-
-# Command 4: Push the new branch to GitHub
-git push origin feature-branch
-
-bash
-
-
-Step 2: Create the Pull Request on GitHub.
-
-Go to your action-repo on GitHub: https://github.com/patiltejas189/action-repo
-You will see a message saying "feature-branch had recent pushes". Click the "Compare & pull request" button.
-On the next page, click the green "Create pull request" button.
-This action triggers the "Pull Request" webhook. You will see the new event on http://localhost:5000.
-How to Trigger a MERGE Event
-Step 3: Merge the Pull Request on GitHub.
-
-After creating the pull request, stay on that page on GitHub.
-Click the green "Merge pull request" button.
-Click the "Confirm merge" button.
-This action triggers the "Merge" webhook. You will see the "merged branch" event appear on http://localhost:5000.
+**4. Observe the Results:**
+Watch the events appear in real-time on your browser at `http://localhost:5000`.
