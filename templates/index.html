@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Events</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        #events {
+            list-style-type: none;
+            padding: 0;
+        }
+        #events li {
+            border: 1px solid #ddd;
+            margin-top: -1px;
+            background-color: #f6f6f6;
+            padding: 12px;
+        }
+        .error {
+            color: red;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Latest GitHub Repository Events</h1>
+    <ul id="events"></ul>
+
+    <script>
+        function fetchEvents() {
+            fetch('/events')
+                .then(response => response.json())
+                .then(data => {
+                    const eventsList = document.getElementById('events');
+                    eventsList.innerHTML = '';
+                    if (data.error) {
+                        const errorItem = document.createElement('li');
+                        errorItem.className = 'error';
+                        errorItem.textContent = data.error;
+                        eventsList.appendChild(errorItem);
+                    } else {
+                        data.forEach(event => {
+                            const listItem = document.createElement('li');
+                            listItem.textContent = event.message;
+                            eventsList.appendChild(listItem);
+                        });
+                    }
+                });
+        }
+
+        setInterval(fetchEvents, 15000);
+        fetchEvents();
+    </script>
+</body>
+</html>

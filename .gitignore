@@ -1,0 +1,14 @@
+# Ignore the local database files
+Data/
+action-repo/
+github-webhook-viewer/
+
+# Python virtual environment
+venv/
+*.pyc
+__pycache__/
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
